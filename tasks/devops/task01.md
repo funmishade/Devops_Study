@@ -170,3 +170,189 @@ Logging and email notifications for monitoring.
 Disaster recovery-ready setup for your database.
 
 Cron automation ensures backups every 12 hours without manual intervention.
+
+
+
+
+# PostgreSQL Backup to Cloudflare R2
+
+## Project Overview
+This project automates **PostgreSQL database backups** to **Cloudflare R2** every **12 hours**, with **logging** and **email notifications** for disaster recovery.
+
+It demonstrates **real-world DevOps practices**, including automation, offsite backups, monitoring, and restore workflows.
+
+---
+
+## Key Features
+- Dockerized PostgreSQL container
+- Automated backup script
+- Cloudflare R2 integration
+- Logging for backup and upload
+- Email notifications using mailutils
+- Restore workflow for disaster recovery
+
+---
+
+## Prerequisites
+- WSL (Windows Subsystem for Linux) or Linux
+- Docker installed and running
+- PostgreSQL in a Docker container (`pg-backup`)
+- Cloudflare R2 bucket with AWS S3-compatible API access
+- AWS CLI installed with a named profile (`r2`) for Cloudflare R2
+- `mailutils` installed for email notifications:
+
+```bash
+sudo apt update
+sudo apt install mailutils -y
+Set environment variables:
+
+bash
+Copy code
+export DB_USER=myuser
+export DB_PASSWORD=myStrongPass123
+export DB_NAME=testdb
+export R2_BUCKET=backup-dbpostgre
+export NOTIFY_EMAIL=2244deborah@gmail.com
+Docker Setup
+Run PostgreSQL in a container:
+
+bash
+Copy code
+docker run -d \
+  --name pg-backup \
+  -e POSTGRES_USER=myuser \
+  -e POSTGRES_PASSWORD=myStrongPass123 \
+  -e POSTGRES_DB=testdb \
+  -p 5432:5432 \
+  postgres:15.3
+Verify the container is running:
+
+bash
+Copy code
+docker ps
+Backup Script
+File: backup_postgres_r2.sh
+
+Steps:
+
+Dumps the PostgreSQL database from Docker
+
+Compresses the backup into .sql.gz
+
+Uploads backup to Cloudflare R2 using AWS CLI
+
+Logs actions in /home/funmi/backup_postgres_r2.log
+
+Sends email notifications for success/failure
+
+Removes local backup after upload
+
+Make script executable and run:
+
+bash
+Copy code
+chmod +x backup_postgres_r2.sh
+./backup_postgres_r2.sh
+Cron Job Automation
+Run backups automatically every 12 hours:
+
+bash
+Copy code
+crontab -e
+Add the following line:
+
+cron
+Copy code
+0 */12 * * * /home/funmi/backup_postgres_r2.sh
+Logging
+Log file: /home/funmi/backup_postgres_r2.log
+
+Logs include:
+
+Backup start time
+
+Backup success/failure
+
+Upload success/failure
+
+Finish time
+
+Example log:
+
+text
+Copy code
+===== Backup started at 2025-12-27 23:06 =====
+Database backup successful: /tmp/testdb_2025-12-27_23-06.sql.gz
+Upload to R2 successful
+Backup finished at 2025-12-27 23:07
+Email Notifications
+Recipient: 2244deborah@gmail.com
+
+Sent on: Backup failure, Upload failure, Successful backup
+
+Example messages:
+
+Failure: "Database backup FAILED for testdb at 2025-12-27 23:06"
+
+Success: "Backup completed successfully for testdb at 2025-12-27 23:07"
+
+Cloudflare R2 Integration
+Upload backup using S3-compatible API:
+
+bash
+Copy code
+aws s3 cp /tmp/testdb_2025-12-27_23-06.sql.gz s3://backup-dbpostgre/ \
+  --endpoint-url https://bda79d88b7dcbe9776bd7247e5c7784f.r2.cloudflarestorage.com \
+  --profile r2
+Restore Script
+Downloads the latest backup from Cloudflare R2
+
+Restores it into PostgreSQL Docker container
+
+Completes the disaster recovery workflow
+
+Disaster Recovery Strategy
+Regular automated backups
+
+Offsite storage (Cloudflare R2)
+
+Monitoring via logs and email alerts
+
+Tested restore process
+
+Optional Enhancements
+Slack notifications for teams
+
+Backup retention policy (keep last N backups)
+
+Encrypted backups
+
+Monitoring dashboards
+
+Incremental backups for large databases
+
+Tools & Technologies
+PostgreSQL
+
+Docker
+
+Bash scripting
+
+AWS CLI
+
+Cloudflare R2
+
+Cron
+
+mailutils
+
+Project Outcome
+Reliable, automated PostgreSQL backups
+
+Secure offsite storage
+
+Logging and email notifications
+
+Restore-ready disaster recovery workflow
+
+Cron automation ensures backups every 12 hours
