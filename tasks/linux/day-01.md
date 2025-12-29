@@ -54,7 +54,7 @@ sudo useradd -e 2024-11-03 kirsty
 Verify expiry date
 chage -l tempuser
 
-
+```**
 
 
 # Task 1 – Creating a Non-Interactive User on App Server 1
